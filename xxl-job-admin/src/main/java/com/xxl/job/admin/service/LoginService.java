@@ -28,8 +28,7 @@ public class LoginService {
 
     private String makeToken(XxlJobUser xxlJobUser){
         String tokenJson = JacksonUtil.writeValueAsString(xxlJobUser);
-        String tokenHex = new BigInteger(tokenJson.getBytes()).toString(16);
-        return tokenHex;
+        return new BigInteger(tokenJson.getBytes()).toString(16);
     }
     private XxlJobUser parseToken(String tokenHex){
         XxlJobUser xxlJobUser = null;
@@ -44,18 +43,18 @@ public class LoginService {
     public ReturnT<String> login(HttpServletRequest request, HttpServletResponse response, String username, String password, boolean ifRemember){
 
         // param
-        if (username==null || username.trim().length()==0 || password==null || password.trim().length()==0){
-            return new ReturnT<String>(500, I18nUtil.getString("login_param_empty"));
+        if (username==null || username.trim().isEmpty() || password==null || password.trim().isEmpty()){
+            return new ReturnT<>(500, I18nUtil.getString("login_param_empty"));
         }
 
         // valid passowrd
         XxlJobUser xxlJobUser = xxlJobUserDao.loadByUserName(username);
         if (xxlJobUser == null) {
-            return new ReturnT<String>(500, I18nUtil.getString("login_param_unvalid"));
+            return new ReturnT<>(500, I18nUtil.getString("login_param_unvalid"));
         }
         String passwordMd5 = DigestUtils.md5DigestAsHex(password.getBytes());
         if (!passwordMd5.equals(xxlJobUser.getPassword())) {
-            return new ReturnT<String>(500, I18nUtil.getString("login_param_unvalid"));
+            return new ReturnT<>(500, I18nUtil.getString("login_param_unvalid"));
         }
 
         String loginToken = makeToken(xxlJobUser);

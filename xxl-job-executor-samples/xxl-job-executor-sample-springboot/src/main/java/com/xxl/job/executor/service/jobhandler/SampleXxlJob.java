@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * XxlJob开发示例（Bean模式）
- *
+ * <p>
  * 开发步骤：
  *      1、任务开发：在Spring Bean实例中，开发Job方法；
  *      2、注解配置：为Job方法添加注解 "@XxlJob(value="自定义jobhandler名称", init = "JobHandler初始化方法", destroy = "JobHandler销毁方法")"，注解value值对应的是调度中心新建任务的JobHandler属性的值。
@@ -28,8 +28,8 @@ import java.util.concurrent.TimeUnit;
  */
 @Component
 public class SampleXxlJob {
-    private static Logger logger = LoggerFactory.getLogger(SampleXxlJob.class);
 
+    private static final Logger logger = LoggerFactory.getLogger(SampleXxlJob.class);
 
     /**
      * 1、简单任务示例（Bean模式）
@@ -37,12 +37,10 @@ public class SampleXxlJob {
     @XxlJob("demoJobHandler")
     public void demoJobHandler() throws Exception {
         XxlJobHelper.log("XXL-JOB, Hello World.");
-
         for (int i = 0; i < 5; i++) {
             XxlJobHelper.log("beat at:" + i);
             TimeUnit.SECONDS.sleep(2);
         }
-        // default success
     }
 
 
@@ -51,13 +49,10 @@ public class SampleXxlJob {
      */
     @XxlJob("shardingJobHandler")
     public void shardingJobHandler() throws Exception {
-
         // 分片参数
         int shardIndex = XxlJobHelper.getShardIndex();
         int shardTotal = XxlJobHelper.getShardTotal();
-
         XxlJobHelper.log("分片参数：当前分片序号 = {}, 总分片数 = {}", shardIndex, shardTotal);
-
         // 业务逻辑
         for (int i = 0; i < shardTotal; i++) {
             if (i == shardIndex) {
@@ -66,7 +61,6 @@ public class SampleXxlJob {
                 XxlJobHelper.log("第 {} 片, 忽略", i);
             }
         }
-
     }
 
 
@@ -77,26 +71,20 @@ public class SampleXxlJob {
     public void commandJobHandler() throws Exception {
         String command = XxlJobHelper.getJobParam();
         int exitValue = -1;
-
         BufferedReader bufferedReader = null;
         try {
             // command process
             ProcessBuilder processBuilder = new ProcessBuilder();
             processBuilder.command(command);
             processBuilder.redirectErrorStream(true);
-
             Process process = processBuilder.start();
-            //Process process = Runtime.getRuntime().exec(command);
-
             BufferedInputStream bufferedInputStream = new BufferedInputStream(process.getInputStream());
             bufferedReader = new BufferedReader(new InputStreamReader(bufferedInputStream));
-
             // command log
             String line;
             while ((line = bufferedReader.readLine()) != null) {
                 XxlJobHelper.log(line);
             }
-
             // command exit
             process.waitFor();
             exitValue = process.exitValue();
@@ -107,13 +95,11 @@ public class SampleXxlJob {
                 bufferedReader.close();
             }
         }
-
         if (exitValue == 0) {
             // default success
         } else {
             XxlJobHelper.handleFail("command exit value("+exitValue+") is failed");
         }
-
     }
 
 
@@ -126,16 +112,13 @@ public class SampleXxlJob {
      */
     @XxlJob("httpJobHandler")
     public void httpJobHandler() throws Exception {
-
         // param parse
         String param = XxlJobHelper.getJobParam();
-        if (param==null || param.trim().length()==0) {
+        if (param==null || param.trim().isEmpty()) {
             XxlJobHelper.log("param["+ param +"] invalid.");
-
             XxlJobHelper.handleFail();
             return;
         }
-
         String[] httpParams = param.split("\n");
         String url = null;
         String method = null;
@@ -151,22 +134,18 @@ public class SampleXxlJob {
                 data = httpParam.substring(httpParam.indexOf("data:") + 5).trim();
             }
         }
-
         // param valid
-        if (url==null || url.trim().length()==0) {
+        if (url==null || url.trim().isEmpty()) {
             XxlJobHelper.log("url["+ url +"] invalid.");
-
             XxlJobHelper.handleFail();
             return;
         }
         if (method==null || !Arrays.asList("GET", "POST").contains(method)) {
             XxlJobHelper.log("method["+ method +"] invalid.");
-
             XxlJobHelper.handleFail();
             return;
         }
         boolean isPostMethod = method.equals("POST");
-
         // request
         HttpURLConnection connection = null;
         BufferedReader bufferedReader = null;
@@ -174,7 +153,6 @@ public class SampleXxlJob {
             // connection
             URL realUrl = new URL(url);
             connection = (HttpURLConnection) realUrl.openConnection();
-
             // connection setting
             connection.setRequestMethod(method);
             connection.setDoOutput(isPostMethod);
@@ -185,10 +163,8 @@ public class SampleXxlJob {
             connection.setRequestProperty("connection", "Keep-Alive");
             connection.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
             connection.setRequestProperty("Accept-Charset", "application/json;charset=UTF-8");
-
             // do connection
             connection.connect();
-
             // data
             if (isPostMethod && data!=null && data.trim().length()>0) {
                 DataOutputStream dataOutputStream = new DataOutputStream(connection.getOutputStream());
@@ -196,13 +172,11 @@ public class SampleXxlJob {
                 dataOutputStream.flush();
                 dataOutputStream.close();
             }
-
             // valid StatusCode
             int statusCode = connection.getResponseCode();
             if (statusCode != 200) {
                 throw new RuntimeException("Http Request StatusCode(" + statusCode + ") Invalid.");
             }
-
             // result
             bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"));
             StringBuilder result = new StringBuilder();
@@ -211,15 +185,11 @@ public class SampleXxlJob {
                 result.append(line);
             }
             String responseMsg = result.toString();
-
             XxlJobHelper.log(responseMsg);
-
             return;
         } catch (Exception e) {
             XxlJobHelper.log(e);
-
             XxlJobHelper.handleFail();
-            return;
         } finally {
             try {
                 if (bufferedReader != null) {
@@ -232,7 +202,6 @@ public class SampleXxlJob {
                 XxlJobHelper.log(e2);
             }
         }
-
     }
 
     /**
@@ -248,6 +217,4 @@ public class SampleXxlJob {
     public void destroy(){
         logger.info("destroy");
     }
-
-
 }

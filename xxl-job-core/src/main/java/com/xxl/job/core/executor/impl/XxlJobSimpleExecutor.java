@@ -3,6 +3,10 @@ package com.xxl.job.core.executor.impl;
 import com.xxl.job.core.executor.XxlJobExecutor;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import com.xxl.job.core.handler.impl.MethodJobHandler;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,25 +21,16 @@ import java.util.Map;
  *
  * @author xuxueli 2020-11-05
  */
+@Slf4j
+@Getter
+@Setter
 public class XxlJobSimpleExecutor extends XxlJobExecutor {
-    private static final Logger logger = LoggerFactory.getLogger(XxlJobSimpleExecutor.class);
-
 
     private List<Object> xxlJobBeanList = new ArrayList<>();
-    public List<Object> getXxlJobBeanList() {
-        return xxlJobBeanList;
-    }
-    public void setXxlJobBeanList(List<Object> xxlJobBeanList) {
-        this.xxlJobBeanList = xxlJobBeanList;
-    }
-
-
     @Override
     public void start() {
-
         // init JobHandler Repository (for method)
         initJobHandlerMethodRepository(xxlJobBeanList);
-
         // super start
         try {
             super.start();
@@ -51,25 +46,18 @@ public class XxlJobSimpleExecutor extends XxlJobExecutor {
 
 
     private void initJobHandlerMethodRepository(List<Object> xxlJobBeanList) {
-        if (xxlJobBeanList==null || xxlJobBeanList.size()==0) {
+        if (xxlJobBeanList==null || xxlJobBeanList.isEmpty()) {
             return;
         }
-
         // init job handler from method
         for (Object bean: xxlJobBeanList) {
             // method
             Method[] methods = bean.getClass().getDeclaredMethods();
-            if (methods.length == 0) {
-                continue;
-            }
             for (Method executeMethod : methods) {
                 XxlJob xxlJob = executeMethod.getAnnotation(XxlJob.class);
                 // registry
                 registJobHandler(xxlJob, bean, executeMethod);
             }
-
         }
-
     }
-
 }

@@ -14,8 +14,6 @@
 	<url>https://www.xuxueli.com/</url>
 
 	<dependencies>
-
-		<!-- ********************** embed server: netty + gson ********************** -->
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty-codec-http</artifactId>
@@ -27,7 +25,6 @@
 			<version>${gson.version}</version>
 		</dependency>
 
-		<!-- ********************** plugin ********************** -->
 		<!-- groovy-all -->
 		<dependency>
 			<groupId>org.apache.groovy</groupId>
@@ -43,12 +40,17 @@
 			<scope>provided</scope>
 		</dependency>
 
-		<!-- ********************** base ********************** -->
 		<!-- slf4j -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 			<version>${slf4j-api.version}</version>
+		</dependency>
+		<!-- lombok -->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.18.22</version>
 		</dependency>
 
 		<!-- javax.annotation-api -->

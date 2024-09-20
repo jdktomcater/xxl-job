@@ -26,6 +26,7 @@ import java.util.concurrent.ConcurrentMap;
  * Created by xuxueli on 2016/3/2 21:14.
  */
 public class XxlJobExecutor  {
+
     private static final Logger logger = LoggerFactory.getLogger(XxlJobExecutor.class);
 
     // ---------------------- param ----------------------
@@ -63,7 +64,6 @@ public class XxlJobExecutor  {
         this.logRetentionDays = logRetentionDays;
     }
 
-
     // ---------------------- start + stop ----------------------
     public void start() throws Exception {
 
@@ -87,9 +87,8 @@ public class XxlJobExecutor  {
     public void destroy(){
         // destroy executor-server
         stopEmbedServer();
-
         // destroy jobThreadRepository
-        if (jobThreadRepository.size() > 0) {
+        if (!jobThreadRepository.isEmpty()) {
             for (Map.Entry<Integer, JobThread> item: jobThreadRepository.entrySet()) {
                 JobThread oldJobThread = removeJobThread(item.getKey(), "web container destroy and kill the job.");
                 // wait for job thread push result to callback queue
@@ -104,28 +103,22 @@ public class XxlJobExecutor  {
             jobThreadRepository.clear();
         }
         jobHandlerRepository.clear();
-
-
         // destroy JobLogFileCleanThread
         JobLogFileCleanThread.getInstance().toStop();
-
         // destroy TriggerCallbackThread
         TriggerCallbackThread.getInstance().toStop();
-
     }
 
 
     // ---------------------- admin-client (rpc invoker) ----------------------
     private static List<AdminBiz> adminBizList;
     private void initAdminBizList(String adminAddresses, String accessToken) throws Exception {
-        if (adminAddresses!=null && adminAddresses.trim().length()>0) {
+        if (adminAddresses!=null && !adminAddresses.trim().isEmpty()) {
             for (String address: adminAddresses.trim().split(",")) {
-                if (address!=null && address.trim().length()>0) {
-
+                if (address!=null && !address.trim().isEmpty()) {
                     AdminBiz adminBiz = new AdminBizClient(address.trim(), accessToken);
-
                     if (adminBizList == null) {
-                        adminBizList = new ArrayList<AdminBiz>();
+                        adminBizList = new ArrayList<>();
                     }
                     adminBizList.add(adminBiz);
                 }
@@ -140,7 +133,7 @@ public class XxlJobExecutor  {
     // ---------------------- executor-server (rpc provider) ----------------------
     private EmbedServer embedServer = null;
 
-    private void initEmbedServer(String address, String ip, int port, String appname, String accessToken) throws Exception {
+    private void initEmbedServer(String address, String ip, int port, String appname, String accessToken) {
 
         // fill ip port
         port = port>0?port: NetUtil.findAvailablePort(9999);
@@ -175,7 +168,7 @@ public class XxlJobExecutor  {
 
 
     // ---------------------- job handler repository ----------------------
-    private static ConcurrentMap<String, IJobHandler> jobHandlerRepository = new ConcurrentHashMap<String, IJobHandler>();
+    private static final ConcurrentMap<String, IJobHandler> jobHandlerRepository = new ConcurrentHashMap<>();
     public static IJobHandler loadJobHandler(String name){
         return jobHandlerRepository.get(name);
     }
@@ -192,30 +185,17 @@ public class XxlJobExecutor  {
         //make and simplify the variables since they'll be called several times later
         Class<?> clazz = bean.getClass();
         String methodName = executeMethod.getName();
-        if (name.trim().length() == 0) {
+        if (name.trim().isEmpty()) {
             throw new RuntimeException("xxl-job method-jobhandler name invalid, for[" + clazz + "#" + methodName + "] .");
         }
         if (loadJobHandler(name) != null) {
             throw new RuntimeException("xxl-job jobhandler[" + name + "] naming conflicts.");
         }
-
-        // execute method
-        /*if (!(method.getParameterTypes().length == 1 && method.getParameterTypes()[0].isAssignableFrom(String.class))) {
-            throw new RuntimeException("xxl-job method-jobhandler param-classtype invalid, for[" + bean.getClass() + "#" + method.getName() + "] , " +
-                    "The correct method format like \" public ReturnT<String> execute(String param) \" .");
-        }
-        if (!method.getReturnType().isAssignableFrom(ReturnT.class)) {
-            throw new RuntimeException("xxl-job method-jobhandler return-classtype invalid, for[" + bean.getClass() + "#" + method.getName() + "] , " +
-                    "The correct method format like \" public ReturnT<String> execute(String param) \" .");
-        }*/
-
         executeMethod.setAccessible(true);
-
         // init and destroy
         Method initMethod = null;
         Method destroyMethod = null;
-
-        if (xxlJob.init().trim().length() > 0) {
+        if (!xxlJob.init().trim().isEmpty()) {
             try {
                 initMethod = clazz.getDeclaredMethod(xxlJob.init());
                 initMethod.setAccessible(true);
@@ -223,7 +203,7 @@ public class XxlJobExecutor  {
                 throw new RuntimeException("xxl-job method-jobhandler initMethod invalid, for[" + clazz + "#" + methodName + "] .");
             }
         }
-        if (xxlJob.destroy().trim().length() > 0) {
+        if (!xxlJob.destroy().trim().isEmpty()) {
             try {
                 destroyMethod = clazz.getDeclaredMethod(xxlJob.destroy());
                 destroyMethod.setAccessible(true);
