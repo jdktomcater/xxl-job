@@ -203,7 +203,7 @@ public final class CronExpression implements Serializable, Cloneable {
 
     private static final long serialVersionUID = 12423409423L;
     
-    protected static final int SECOND = 0;
+    private static final int SECOND = 0;
     protected static final int MINUTE = 1;
     protected static final int HOUR = 2;
     protected static final int DAY_OF_MONTH = 3;
@@ -1118,7 +1118,7 @@ public final class CronExpression implements Serializable, Cloneable {
         }
     }
 
-    protected ValueSet getValue(int v, String s, int i) {
+    private ValueSet getValue(int v, String s, int i) {
         char c = s.charAt(i);
         StringBuilder s1 = new StringBuilder(String.valueOf(v));
         while (c >= '0' && c <= '9') {
@@ -1465,7 +1465,7 @@ public final class CronExpression implements Serializable, Cloneable {
                     int dow = daysOfWeek.first(); // desired
                     // d-o-w
                     st = daysOfWeek.tailSet(cDow);
-                    if (st != null && st.size() > 0) {
+                    if (!st.isEmpty()) {
                         dow = st.first();
                     }
 
@@ -1519,7 +1519,7 @@ public final class CronExpression implements Serializable, Cloneable {
 
             // get month...................................................
             st = months.tailSet(mon);
-            if (st != null && st.size() != 0) {
+            if (!st.isEmpty()) {
                 t = mon;
                 mon = st.first();
             } else {
@@ -1579,7 +1579,7 @@ public final class CronExpression implements Serializable, Cloneable {
      * @param cal the calendar to operate on
      * @param hour the hour to set
      */
-    protected void setCalendarHour(Calendar cal, int hour) {
+    private void setCalendarHour(Calendar cal, int hour) {
         cal.set(java.util.Calendar.HOUR_OF_DAY, hour);
         if (cal.get(java.util.Calendar.HOUR_OF_DAY) != hour && hour != 24) {
             cal.set(java.util.Calendar.HOUR_OF_DAY, hour + 1);
@@ -1604,11 +1604,11 @@ public final class CronExpression implements Serializable, Cloneable {
         return null;
     }
     
-    protected boolean isLeapYear(int year) {
+    private boolean isLeapYear(int year) {
         return ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0));
     }
 
-    protected int getLastDayOfMonth(int monthNum, int year) {
+    private int getLastDayOfMonth(int monthNum, int year) {
 
         switch (monthNum) {
             case 1:
